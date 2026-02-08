@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Mobile World</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+<style>
+body {
+  margin: 0;
+  overflow: hidden;
+  touch-action: none;
+  background: #87ceeb;
+  font-family: Arial;
+}
+
+#warning {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  color: red;
+  font-size: 12px;
+}
+
+/* JOYSTICK */
+#joystick {
+  position: absolute;
+  bottom: 40px;
+  left: 40px;
+  width: 120px;
+  height: 120px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 50%;
+}
+#stick {
+  position: absolute;
+  left: 40px;
+  top: 40px;
+  width: 40px;
+  height: 40px;
+  background: yellow;
+  border-radius: 50%;
+}
+
+/* CAMERA BUTTONS */
+#cameraButtons {
+  position: absolute;
+  bottom: 40px;
+  right: 20px;
+}
+.camBtn {
+  margin-bottom: 10px;
+  padding: 10px 15px;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  border-radius: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="joystick"><div id="stick"></div></div>
+
+<div id="cameraButtons">
+  <div class="camBtn" onclick="firstPerson=true">1st</div>
+  <div class="camBtn" onclick="firstPerson=false">3rd</div>
+</div>
+
+<div id="warning">
+  При виході з гри ваші досягнення не будуть збережені
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+
+<script>
+/* SCENE */
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0x87ceeb, 30, 180);
+
+/* CAMERA */
+const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 500);
+
+/* RENDER */
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth, innerHeight);
+renderer.setClearColor(0x87ceeb);
+document.body.appendChild(renderer.domElement);
+
+/* LIGHT */
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+const sun = new THREE.DirectionalLight(0xffffff, 1);
+sun.position.set(100,200,100);
+scene.add(sun);
+
+/* GROUND WITH HILLS */
+const groundGeo = new THREE.PlaneGeometry(400,400,128,128);
+groundGeo.rotateX(-Math.PI/2);
+const pos = groundGeo.attributes.position;
+
+for(let i=0;i<pos.count;i++){
+  const x = pos.getX(i);
+  const z = pos.getZ(i);
+  const y =
+    Math.sin(x*0.03)*4 +
+    Math.cos(z*0.04)*4 +
+    Math.sin((x+z)*0.02)*3;
+  pos.setY(i,y);
+}
+pos.needsUpdate = true;
+
+const ground = new THREE.Mesh(
+  groundGeo,
+  new THREE.MeshStandardMaterial({
+    color: 0x3fa34d,
+    roughness: 1
+  })
+);
+scene.add(ground);
+
+/* CLOUDS */
+for(let i=0;i<18;i++){
+  const c = new THREE.Mesh(
+    new THREE.SphereGeometry(3,16,16),
+    new THREE.MeshStandardMaterial({color:0xffffff})
+  );
+  c.position.set(
+    Math.random()*300-150,
+    40+Math.random()*20,
+    Math.random()*300-150
+  );
+  c.scale.set(2,1,1);
+  scene.add(c);
+}
+
+/* PLAYER */
+const player = new THREE.Mesh(
+  new THREE.CapsuleGeometry(0.5,1),
+  new THREE.MeshStandardMaterial({color:0xffff00})
+);
+player.position.y = 6;
+scene.add(player);
+
+/* CONTROLS */
+let firstPerson = false;
+let joyX=0, joyY=0;
+let yaw=0, pitch=0;
+
+/* JOYSTICK MOVE */
+const joystick = document.getElementById
