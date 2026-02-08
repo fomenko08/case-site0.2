@@ -4,6 +4,78 @@
 <meta charset="UTF-8">
 <title>Mobile World</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<style>
+body { margin:0; overflow:hidden; background:#87ceeb; touch-action:none; }
+#joystick {
+  position:absolute; bottom:30px; left:30px;
+  width:120px; height:120px;
+  background:rgba(0,0,0,0.3);
+  border-radius:50%;
+}
+#stick {
+  position:absolute; left:40px; top:40px;
+  width:40px; height:40px;
+  background:yellow; border-radius:50%;
+}
+#warning {
+  position:absolute; bottom:5px; right:5px;
+  color:red; font-size:12px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="joystick"><div id="stick"></div></div>
+<div id="warning">При виході з гри ваші досягнення не будуть збережені</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+<script>
+/* SCENE */
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87ceeb);
+
+/* CAMERA */
+const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
+
+/* RENDERER */
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth, innerHeight);
+document.body.appendChild(renderer.domElement);
+
+/* LIGHT */
+scene.add(new THREE.AmbientLight(0xffffff,0.6));
+const sun = new THREE.DirectionalLight(0xffffff,1);
+sun.position.set(50,100,50);
+scene.add(sun);
+
+/* GROUND */
+const groundGeo = new THREE.PlaneGeometry(500,500,100,100);
+groundGeo.rotateX(-Math.PI/2);
+const pos = groundGeo.attributes.position;
+
+for(let i=0;i<pos.count;i++){
+  const x = pos.getX(i);
+  const z = pos.getZ(i);
+  const y = Math.sin(x*0.04)*3 + Math.cos(z*0.04)*3;
+  pos.setY(i,y);
+}
+pos.needsUpdate = true;
+
+const ground = new THREE.Mesh(
+  groundGeo,
+  new THREE.MeshStandardMaterial({color:0x2ecc71})
+);
+scene.add(ground);
+
+/* PLAYER */
+const player = new THREE.Mesh(
+  new THREE.BoxGeometry(<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Mobile World</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
 <style>
 body {
